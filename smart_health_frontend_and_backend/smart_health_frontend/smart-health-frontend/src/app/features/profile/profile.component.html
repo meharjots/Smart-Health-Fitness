@@ -1,0 +1,114 @@
+<div class="container p-3 p-lg-4" style="max-width: 820px;">
+  <h2 class="page-title">My Profile</h2>
+  <p class="page-subtitle">Manage your personal details and account settings</p>
+
+  <app-loading *ngIf="loading()" message="Loading profile…"></app-loading>
+
+  <ng-container *ngIf="!loading() && user() as u">
+    <!-- User info card -->
+    <div class="card p-4 mb-4">
+      <div class="d-flex align-items-center mb-3">
+        <div class="avatar-xl me-3">{{ u.full_name.charAt(0) | uppercase }}</div>
+        <div>
+          <h4 class="mb-0">{{ u.full_name }}</h4>
+          <p class="text-muted mb-0">{{ u.email }}</p>
+          <span class="badge badge-soft-primary me-1">{{ u.role }}</span>
+          <span class="badge badge-soft-info">{{ u.membership_type }}</span>
+        </div>
+      </div>
+      <div class="small text-muted" *ngIf="u.created_at">
+        <i class="bi bi-calendar3"></i>
+        Member since {{ u.created_at | date:'longDate' }}
+      </div>
+    </div>
+
+    <!-- Edit form -->
+    <div class="card p-4 mb-4">
+      <h5 class="mb-3"><i class="bi bi-pencil-square"></i> Edit your details</h5>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Full name <span class="required-marker">*</span></label>
+            <input class="form-control" formControlName="full_name"
+                   [class.is-invalid]="form.controls.full_name.touched && form.controls.full_name.invalid">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Age</label>
+            <input type="number" min="1" max="120" class="form-control" formControlName="age">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <select class="form-select" formControlName="gender">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Membership</label>
+            <select class="form-select" formControlName="membership_type">
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Height (cm)</label>
+            <input type="number" min="50" max="300" class="form-control" formControlName="height_cm">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Weight (kg)</label>
+            <input type="number" min="10" max="500" step="0.1" class="form-control" formControlName="weight_kg">
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary btn-icon"
+                  [disabled]="saving() || form.pristine">
+            <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+            <i class="bi bi-check-lg" *ngIf="!saving()"></i>
+            Save changes
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="load()"
+                  [disabled]="saving()">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="card p-4 border-danger-subtle">
+      <h5 class="text-danger mb-2"><i class="bi bi-exclamation-octagon-fill"></i> Danger zone</h5>
+      <p class="small text-muted">
+        Permanently delete your account and all associated data (activity logs,
+        nutrition, goals, metrics). This action cannot be undone.
+      </p>
+      <button class="btn btn-outline-danger btn-icon" (click)="showDeleteDialog.set(true)">
+        <i class="bi bi-trash"></i> Delete account
+      </button>
+    </div>
+
+    <app-confirm-dialog
+      [visible]="showDeleteDialog()"
+      title="Delete your account?"
+      message="All of your data will be permanently removed. This cannot be undone."
+      confirmLabel="Yes, delete forever"
+      (confirm)="showDeleteDialog.set(false); confirmDelete()"
+      (cancel)="showDeleteDialog.set(false)">
+    </app-confirm-dialog>
+  </ng-container>
+</div>
+
+<style>
+.avatar-xl {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+  color: white; font-weight: 700; font-size: 1.75rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.border-danger-subtle { border: 1px solid rgba(220,53,69,0.25) !important; }
+</style>

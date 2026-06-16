@@ -1,0 +1,34 @@
+:host { display: block; }
+
+.nav-link {
+  color: #475569;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem !important;
+  border-radius: 0.4rem;
+  transition: all 0.15s;
+
+  &:hover { color: #0d6efd; background-color: #eef3ff; }
+  &.active { color: #0d6efd; background-color: #e8f0ff; }
+}
+
+.avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.dropdown-item {
+  font-size: 0.9rem;
+  i { margin-right: 0.35rem; }
+}

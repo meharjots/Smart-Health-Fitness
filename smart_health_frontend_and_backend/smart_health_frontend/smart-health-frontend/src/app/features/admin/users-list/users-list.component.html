@@ -1,0 +1,171 @@
+<div class="container-fluid p-3 p-lg-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title"><i class="bi bi-people"></i> All Users
+        <span class="badge bg-secondary">admin</span>
+      </h2>
+      <p class="page-subtitle">Manage every user account on the platform</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card p-3 mb-4">
+    <form [formGroup]="filters" class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label small">Search name</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input class="form-control" formControlName="search"
+                 placeholder="e.g. Alice">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Membership</label>
+        <select class="form-select" formControlName="membership_type">
+          <option value="">All memberships</option>
+          <option value="free">Free</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Gender</label>
+        <select class="form-select" formControlName="gender">
+          <option value="">Any</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+          <i class="bi bi-x-lg"></i> Clear
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between">
+      <span class="fw-semibold">{{ total() }} user{{ total() === 1 ? '' : 's' }}</span>
+      <span class="small text-muted" *ngIf="totalPages() > 1">
+        Page {{ page() }} of {{ totalPages() }}
+      </span>
+    </div>
+
+    <app-loading *ngIf="loading()"></app-loading>
+
+    <div class="empty-state" *ngIf="!loading() && users().length === 0">
+      <i class="bi bi-person-x"></i>
+      <p>No users match your filters.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading() && users().length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Membership</th>
+            <th>Gender</th>
+            <th>Age</th>
+            <th>Joined</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of users()">
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar-sm me-2">{{ u.full_name.charAt(0) | uppercase }}</div>
+                <div>
+                  <div class="fw-500">{{ u.full_name }}</div>
+                  <small class="text-muted">{{ u.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge"
+                    [ngClass]="u.role === 'admin' ? 'badge-soft-danger' : 'badge-soft-primary'">
+                {{ u.role }}
+              </span>
+            </td>
+            <td>
+              <span class="badge"
+                    [ngClass]="u.membership_type === 'premium' ? 'badge-soft-warning' : 'badge-soft-info'">
+                {{ u.membership_type }}
+              </span>
+            </td>
+            <td>{{ u.gender | titlecase }}</td>
+            <td>{{ u.age }}</td>
+            <td class="small text-muted">
+              {{ u.created_at ? (u.created_at | date:'mediumDate') : '—' }}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1"
+                      (click)="askChangeRole(u)" [title]="'Make ' + (u.role === 'admin' ? 'user' : 'admin')">
+                <i class="bi bi-shield-lock"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="askDelete(u)" title="Delete user">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer bg-white d-flex justify-content-center"
+         *ngIf="!loading() && totalPages() > 1">
+      <nav>
+        <ul class="pagination mb-0">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="goTo(page() - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
+          <li class="page-item" *ngFor="let p of pageRange()" [class.active]="p === page()">
+            <button class="page-link" (click)="goTo(p)">{{ p }}</button>
+          </li>
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="goTo(page() + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Confirm delete -->
+  <app-confirm-dialog
+    [visible]="!!deleteTarget()"
+    title="Delete this user?"
+    [message]="'Permanently delete ' + (deleteTarget()?.full_name ?? 'this user') + '? All their data will be lost.'"
+    confirmLabel="Yes, delete"
+    (confirm)="doDelete()"
+    (cancel)="deleteTarget.set(null)">
+  </app-confirm-dialog>
+
+  <!-- Confirm role change -->
+  <app-confirm-dialog
+    [visible]="!!roleTarget()"
+    title="Change user role?"
+    [message]="'Change ' + (roleTarget()?.full_name ?? 'this user') + ' from ' + (roleTarget()?.role ?? '') + ' to ' + (roleTarget()?.role === 'admin' ? 'user' : 'admin') + '?'"
+    confirmLabel="Yes, change"
+    kind="primary"
+    (confirm)="doChangeRole()"
+    (cancel)="roleTarget.set(null)">
+  </app-confirm-dialog>
+</div>
+
+<style>
+.avatar-sm {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+  color: white; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+</style>

@@ -1,0 +1,197 @@
+<div class="container-fluid p-3 p-lg-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h2 class="page-title"><i class="bi bi-graph-up-arrow"></i> Analytics</h2>
+      <p class="page-subtitle">Insights from your activity, nutrition and health data</p>
+    </div>
+    <button class="btn btn-outline-primary btn-icon" (click)="loadAll()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise"></i> Refresh all
+    </button>
+  </div>
+
+  <app-loading *ngIf="loading()" message="Crunching your numbers…"></app-loading>
+
+  <ng-container *ngIf="!loading()">
+    <!-- BMI headline -->
+    <div class="card p-4 mb-4" *ngIf="bmi()">
+      <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+          <div class="small text-muted">Body Mass Index</div>
+          <h1 class="display-4 fw-bold mb-0" [ngClass]="bmiClass()">
+            {{ bmi()?.bmi }}
+          </h1>
+          <span class="badge rounded-pill px-3 py-2"
+                [ngClass]="{
+                  'badge-soft-warning': bmi()?.category === 'Underweight' || bmi()?.category === 'Overweight',
+                  'badge-soft-success': bmi()?.category === 'Normal weight',
+                  'badge-soft-danger':  bmi()?.category === 'Obese'
+                }">
+            {{ bmi()?.category }}
+          </span>
+        </div>
+        <div class="col-md-9">
+          <h5 class="mb-2"><i class="bi bi-lightbulb text-warning"></i> Personalised advice</h5>
+          <p class="mb-2">{{ bmi()?.advice }}</p>
+          <small class="text-muted">
+            Based on {{ bmi()?.height_cm }}cm and {{ bmi()?.weight_kg }}kg.
+            Update these in your <a routerLink="/profile">profile</a>.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calorie balance (range selector) -->
+    <div class="card p-4 mb-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
+        <h5 class="mb-0"><i class="bi bi-scales"></i> Calorie balance</h5>
+        <form [formGroup]="dateForm"
+              class="d-flex gap-2 mt-3 mt-md-0"
+              (ngSubmit)="applyRange()">
+          <input type="date" class="form-control form-control-sm" formControlName="start_date"
+                 aria-label="Start date">
+          <input type="date" class="form-control form-control-sm" formControlName="end_date"
+                 aria-label="End date">
+          <button type="submit" class="btn btn-sm btn-primary" [disabled]="refreshing()">
+            <i class="bi bi-funnel"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetRange()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </form>
+      </div>
+
+      <ng-container *ngIf="balance() as b">
+        <div class="row g-3 text-center">
+          <div class="col-6 col-md-3">
+            <div class="small text-muted">Calories consumed</div>
+            <h4 class="mb-0 text-primary">{{ b.calories_consumed | number:'1.0-0' }}</h4>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="small text-muted">Calories burned</div>
+            <h4 class="mb-0 text-success">{{ b.calories_burned | number:'1.0-0' }}</h4>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="small text-muted">Net balance</div>
+            <h4 class="mb-0" [class.text-danger]="b.net_balance > 0"
+                [class.text-success]="b.net_balance <= 0">
+              {{ b.net_balance > 0 ? '+' : '' }}{{ b.net_balance | number:'1.0-0' }}
+            </h4>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="small text-muted">Data points</div>
+            <h4 class="mb-0 text-info">
+              {{ b.activity_count }} / {{ b.meals_logged }}
+            </h4>
+            <small class="text-muted">activities / meals</small>
+          </div>
+        </div>
+        <div class="small text-muted mt-3 text-center">
+          Period: {{ b.period.start }} → {{ b.period.end }}
+        </div>
+      </ng-container>
+
+      <div class="empty-state" *ngIf="!balance()">
+        <i class="bi bi-clipboard-x"></i>
+        <p class="mb-0">No data for this range.</p>
+      </div>
+    </div>
+
+    <!-- Weekly trend -->
+    <div class="card p-4 mb-4">
+      <h5 class="mb-3"><i class="bi bi-graph-up"></i> Last 7 days — calorie trend</h5>
+      <div class="chart-container" style="height: 320px;"
+           *ngIf="weekly().length > 0; else noWeekly">
+        <canvas baseChart
+                [data]="lineChartData()"
+                [options]="lineChartOptions"
+                type="line">
+        </canvas>
+      </div>
+      <ng-template #noWeekly>
+        <div class="empty-state">
+          <i class="bi bi-bar-chart"></i>
+          <p>Start logging activities and meals to see your trend.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <!-- Activity summary doughnut -->
+      <div class="col-lg-6">
+        <div class="card p-4 h-100">
+          <h5 class="mb-3"><i class="bi bi-pie-chart"></i> Calories burned by activity</h5>
+          <div class="chart-container" style="height: 280px;"
+               *ngIf="activitySummary().length > 0; else noAct">
+            <canvas baseChart
+                    [data]="doughnutData()"
+                    [options]="doughnutOptions"
+                    type="doughnut">
+            </canvas>
+          </div>
+          <ng-template #noAct>
+            <div class="empty-state"><i class="bi bi-pie-chart"></i>
+              <p>No activity data yet.</p></div>
+          </ng-template>
+
+          <!-- Tabular summary -->
+          <div class="table-responsive mt-3" *ngIf="activitySummary().length > 0">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th class="text-end">Sessions</th>
+                  <th class="text-end">Total kcal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of activitySummary()">
+                  <td>{{ a.activity_type | titlecase }}</td>
+                  <td class="text-end">{{ a.total_sessions }}</td>
+                  <td class="text-end">{{ a.total_calories_burned | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Macro breakdown by meal -->
+      <div class="col-lg-6">
+        <div class="card p-4 h-100">
+          <h5 class="mb-3"><i class="bi bi-bar-chart-steps"></i> Macros by meal type</h5>
+          <div class="chart-container" style="height: 280px;"
+               *ngIf="nutritionSummary().length > 0; else noNut">
+            <canvas baseChart
+                    [data]="macroBarData()"
+                    [options]="macroBarOptions"
+                    type="bar">
+            </canvas>
+          </div>
+          <ng-template #noNut>
+            <div class="empty-state"><i class="bi bi-bar-chart"></i>
+              <p>No nutrition data yet.</p></div>
+          </ng-template>
+
+          <div class="table-responsive mt-3" *ngIf="nutritionSummary().length > 0">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Meal</th>
+                  <th class="text-end">Meals</th>
+                  <th class="text-end">Total kcal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let n of nutritionSummary()">
+                  <td>{{ n.meal_type | titlecase }}</td>
+                  <td class="text-end">{{ n.total_meals }}</td>
+                  <td class="text-end">{{ n.total_calories | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

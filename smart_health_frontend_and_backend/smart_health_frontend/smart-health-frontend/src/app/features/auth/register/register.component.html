@@ -1,0 +1,91 @@
+<div class="auth-wrapper">
+  <div class="auth-card card" style="max-width: 640px;">
+    <div class="auth-brand">
+      <i class="bi bi-heart-pulse-fill"></i>
+      <h3 class="mt-2 mb-0">Create your account</h3>
+      <p class="text-muted small mb-0">Start tracking your health journey today</p>
+    </div>
+
+    <div class="card-body p-4">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Full name <span class="required-marker">*</span></label>
+            <input type="text" class="form-control" formControlName="full_name"
+                   [class.is-invalid]="form.controls.full_name.touched && form.controls.full_name.invalid">
+            <div class="invalid-feedback">Full name is required (min 2 characters).</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Email <span class="required-marker">*</span></label>
+            <input type="email" class="form-control" formControlName="email"
+                   [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid">
+            <div class="invalid-feedback">Enter a valid email address.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Password <span class="required-marker">*</span></label>
+            <input type="password" class="form-control" formControlName="password"
+                   [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid">
+            <div class="invalid-feedback">Minimum 6 characters.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Confirm password <span class="required-marker">*</span></label>
+            <input type="password" class="form-control" formControlName="confirm_password"
+                   [class.is-invalid]="form.controls.confirm_password.touched && (form.controls.confirm_password.invalid || form.errors?.['passwordMismatch'])">
+            <div class="invalid-feedback d-block"
+                 *ngIf="form.controls.confirm_password.touched && form.errors?.['passwordMismatch']">
+              Passwords do not match.
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Age <span class="required-marker">*</span></label>
+            <input type="number" min="1" max="120" class="form-control" formControlName="age">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Height (cm) <span class="required-marker">*</span></label>
+            <input type="number" min="50" max="300" class="form-control" formControlName="height_cm">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Weight (kg) <span class="required-marker">*</span></label>
+            <input type="number" min="10" max="500" step="0.1" class="form-control" formControlName="weight_kg">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Gender <span class="required-marker">*</span></label>
+            <select class="form-select" formControlName="gender">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Membership</label>
+            <select class="form-select" formControlName="membership_type">
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="submitting()"></span>
+            <i class="bi bi-person-plus" *ngIf="!submitting()"></i>
+            Create account
+          </button>
+        </div>
+
+        <p class="text-center mt-3 mb-0 small">
+          Already have an account? <a routerLink="/login">Log in</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

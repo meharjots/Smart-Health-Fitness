@@ -1,0 +1,70 @@
+<div class="container p-3 p-lg-4" style="max-width: 720px;">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a routerLink="/activities">Activities</a></li>
+      <li class="breadcrumb-item active">{{ editingId() ? 'Edit' : 'New' }}</li>
+    </ol>
+  </nav>
+
+  <h2 class="page-title">
+    <i class="bi" [ngClass]="editingId() ? 'bi-pencil-square' : 'bi-plus-circle'"></i>
+    {{ editingId() ? 'Edit Activity' : 'Log New Activity' }}
+  </h2>
+  <p class="page-subtitle">
+    {{ editingId() ? 'Update the details of your workout.' : 'Record a new workout to keep your streak alive.' }}
+  </p>
+
+  <app-loading *ngIf="loading()" message="Loading activity…"></app-loading>
+
+  <div class="card p-4" *ngIf="!loading()">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Activity type <span class="required-marker">*</span></label>
+          <select class="form-select" formControlName="activity_type">
+            <option *ngFor="let t of ACTIVITY_TYPES" [value]="t">{{ t | titlecase }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Date <span class="required-marker">*</span></label>
+          <input type="date" class="form-control" formControlName="activity_date"
+                 [class.is-invalid]="form.controls.activity_date.touched && form.controls.activity_date.invalid">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Duration (minutes) <span class="required-marker">*</span></label>
+          <input type="number" min="1" max="1440" class="form-control"
+                 formControlName="duration_minutes"
+                 [class.is-invalid]="form.controls.duration_minutes.touched && form.controls.duration_minutes.invalid">
+          <div class="invalid-feedback">Enter a value between 1 and 1440 minutes.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Calories burned <span class="required-marker">*</span></label>
+          <input type="number" min="0" max="10000" step="0.1" class="form-control"
+                 formControlName="calories_burned"
+                 [class.is-invalid]="form.controls.calories_burned.touched && form.controls.calories_burned.invalid">
+          <div class="invalid-feedback">Enter a value between 0 and 10000 kcal.</div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Notes <small class="text-muted">(optional)</small></label>
+          <textarea class="form-control" rows="3" formControlName="notes"
+                    placeholder="How did the workout feel? Any PRs?"></textarea>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-icon" [disabled]="saving()">
+          <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+          <i class="bi bi-check-lg" *ngIf="!saving()"></i>
+          {{ editingId() ? 'Save changes' : 'Log activity' }}
+        </button>
+        <a routerLink="/activities" class="btn btn-outline-secondary">
+          <i class="bi bi-x-lg"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

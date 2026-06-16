@@ -1,0 +1,103 @@
+<div class="container p-3 p-lg-4" style="max-width: 860px;">
+  <h2 class="page-title"><i class="bi bi-bullseye"></i> Fitness Goals</h2>
+  <p class="page-subtitle">Set realistic targets and track your progress over time</p>
+
+  <app-loading *ngIf="loading()"></app-loading>
+
+  <ng-container *ngIf="!loading()">
+    <!-- Current goals preview -->
+    <div class="card p-4 mb-4" *ngIf="hasAnyGoals()">
+      <h6 class="mb-3"><i class="bi bi-list-check"></i> Current goals</h6>
+      <div class="row g-3">
+        <div class="col-md-6" *ngIf="goals()?.goal_type">
+          <div class="small text-muted">Goal type</div>
+          <div class="fw-500">
+            <i class="bi bi-star-fill text-warning"></i>
+            {{ goalTypeLabel(goals()?.goal_type) }}
+          </div>
+        </div>
+        <div class="col-md-6" *ngIf="goals()?.target_weight_kg">
+          <div class="small text-muted">Target weight</div>
+          <div class="fw-500">{{ goals()?.target_weight_kg }} kg</div>
+        </div>
+        <div class="col-md-6" *ngIf="goals()?.daily_calorie_target">
+          <div class="small text-muted">Daily calorie target</div>
+          <div class="fw-500">{{ goals()?.daily_calorie_target }} kcal</div>
+        </div>
+        <div class="col-md-6" *ngIf="goals()?.weekly_workout_target">
+          <div class="small text-muted">Weekly workouts</div>
+          <div class="fw-500">{{ goals()?.weekly_workout_target }} workouts / week</div>
+        </div>
+        <div class="col-md-6" *ngIf="goals()?.target_date">
+          <div class="small text-muted">Target date</div>
+          <div class="fw-500">{{ goals()?.target_date | date:'longDate' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card p-4 mb-4">
+      <h5 class="mb-3">
+        <i class="bi bi-pencil-square"></i>
+        {{ hasAnyGoals() ? 'Update goals' : 'Set your goals' }}
+      </h5>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Goal type</label>
+            <select class="form-select" formControlName="goal_type">
+              <option value="">— Select —</option>
+              <option *ngFor="let g of GOAL_TYPES" [value]="g.value">{{ g.label }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Target date</label>
+            <input type="date" class="form-control" formControlName="target_date"
+                   [min]="minDate()">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Target weight (kg)</label>
+            <input type="number" min="20" max="500" step="0.1" class="form-control"
+                   formControlName="target_weight_kg">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Daily calorie target</label>
+            <input type="number" min="500" max="10000" class="form-control"
+                   formControlName="daily_calorie_target">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Weekly workout target</label>
+            <input type="number" min="1" max="21" class="form-control"
+                   formControlName="weekly_workout_target">
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary btn-icon" [disabled]="saving()">
+            <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+            <i class="bi bi-check-lg" *ngIf="!saving()"></i>
+            Save goals
+          </button>
+          <button type="button" class="btn btn-outline-danger" *ngIf="hasAnyGoals()"
+                  (click)="showClearDialog.set(true)">
+            <i class="bi bi-trash"></i> Clear all goals
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <app-confirm-dialog
+      [visible]="showClearDialog()"
+      title="Clear all fitness goals?"
+      message="Your current goals will be removed. You can set new ones at any time."
+      confirmLabel="Yes, clear"
+      (confirm)="confirmClear()"
+      (cancel)="showClearDialog.set(false)">
+    </app-confirm-dialog>
+  </ng-container>
+</div>

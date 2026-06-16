@@ -1,0 +1,81 @@
+<div class="auth-wrapper">
+  <div class="auth-card card">
+    <div class="auth-brand">
+      <i class="bi bi-heart-pulse-fill"></i>
+      <h3 class="mt-2 mb-0">Smart Health &amp; Fitness</h3>
+      <p class="text-muted small mb-0">Track. Train. Transform.</p>
+    </div>
+
+    <div class="card-body p-4">
+      <h5 class="mb-3">Log in to your account</h5>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <div class="mb-3">
+          <label class="form-label" for="email">Email address</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input id="email" type="email" class="form-control"
+                   formControlName="email" autocomplete="email"
+                   [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid"
+                   placeholder="you@example.com">
+          </div>
+          <div class="invalid-feedback d-block"
+               *ngIf="form.controls.email.touched && form.controls.email.errors">
+            <span *ngIf="form.controls.email.errors['required']">Email is required.</span>
+            <span *ngIf="form.controls.email.errors['email']">Enter a valid email address.</span>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input id="password" [type]="showPassword() ? 'text' : 'password'"
+                   class="form-control" formControlName="password"
+                   autocomplete="current-password"
+                   [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+                   placeholder="Enter your password">
+            <button type="button" class="btn btn-outline-secondary"
+                    (click)="showPassword.set(!showPassword())"
+                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+              <i class="bi" [ngClass]="showPassword() ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
+          <div class="invalid-feedback d-block"
+               *ngIf="form.controls.password.touched && form.controls.password.errors">
+            <span *ngIf="form.controls.password.errors['required']">Password is required.</span>
+            <span *ngIf="form.controls.password.errors['minlength']">
+              Password must be at least 6 characters.
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100"
+                [disabled]="submitting()">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="submitting()"></span>
+          <i class="bi bi-box-arrow-in-right" *ngIf="!submitting()"></i>
+          Log in
+        </button>
+      </form>
+
+      <hr class="my-4">
+
+      <div class="text-center small text-muted mb-2">Try a demo account</div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary flex-fill"
+                type="button" (click)="fillDemo('user')">
+          <i class="bi bi-person"></i> Demo user
+        </button>
+        <button class="btn btn-sm btn-outline-secondary flex-fill"
+                type="button" (click)="fillDemo('admin')">
+          <i class="bi bi-shield-lock"></i> Demo admin
+        </button>
+      </div>
+
+      <p class="text-center mt-3 mb-0 small">
+        Don't have an account? <a routerLink="/register">Create one</a>
+      </p>
+    </div>
+  </div>
+</div>

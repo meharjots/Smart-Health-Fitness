@@ -1,0 +1,130 @@
+<div class="container p-3 p-lg-4" style="max-width: 960px;">
+  <h2 class="page-title"><i class="bi bi-heart"></i> Health Metrics</h2>
+  <p class="page-subtitle">Log your vital signs and track your long-term health trends</p>
+
+  <app-loading *ngIf="loading()"></app-loading>
+
+  <ng-container *ngIf="!loading()">
+    <!-- Current metrics cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">BMI</div>
+          <h3 class="mb-0 mt-1" [ngClass]="bmiClass(metrics()?.bmi)">
+            {{ metrics()?.bmi ?? '—' }}
+          </h3>
+          <small class="text-muted">{{ bmiCategory(metrics()?.bmi) }}</small>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">Heart rate</div>
+          <h3 class="mb-0 mt-1">{{ metrics()?.heart_rate ?? '—' }}
+            <small class="fs-6 text-muted" *ngIf="metrics()?.heart_rate">bpm</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">Blood pressure</div>
+          <h3 class="mb-0 mt-1">
+            <ng-container *ngIf="metrics()?.systolic_bp && metrics()?.diastolic_bp; else noBp">
+              {{ metrics()?.systolic_bp }}/{{ metrics()?.diastolic_bp }}
+            </ng-container>
+            <ng-template #noBp>—</ng-template>
+          </h3>
+          <small class="text-muted">mmHg</small>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">Sleep</div>
+          <h3 class="mb-0 mt-1">{{ metrics()?.sleep_hours ?? '—' }}
+            <small class="fs-6 text-muted" *ngIf="metrics()?.sleep_hours">hrs</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">Resting HR</div>
+          <h3 class="mb-0 mt-1">{{ metrics()?.resting_heart_rate ?? '—' }}
+            <small class="fs-6 text-muted" *ngIf="metrics()?.resting_heart_rate">bpm</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card p-3 text-center">
+          <div class="small text-muted">VO₂ Max</div>
+          <h3 class="mb-0 mt-1">{{ metrics()?.vo2_max ?? '—' }}
+            <small class="fs-6 text-muted" *ngIf="metrics()?.vo2_max">ml/kg/min</small>
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update form -->
+    <div class="card p-4">
+      <h5 class="mb-3"><i class="bi bi-pencil-square"></i> Update metrics</h5>
+      <p class="small text-muted">
+        Leave any field blank to keep the existing value. BMI is auto-computed from your
+        height and weight on your profile.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">Heart rate (bpm)</label>
+            <input type="number" min="20" max="300" class="form-control"
+                   formControlName="heart_rate" placeholder="60-100 normal">
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">Resting heart rate (bpm)</label>
+            <input type="number" min="20" max="200" class="form-control"
+                   formControlName="resting_heart_rate">
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">Sleep hours</label>
+            <input type="number" min="0" max="24" step="0.1" class="form-control"
+                   formControlName="sleep_hours">
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">Systolic BP (mmHg)</label>
+            <input type="number" min="50" max="300" class="form-control"
+                   formControlName="systolic_bp" placeholder="~ 120">
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">Diastolic BP (mmHg)</label>
+            <input type="number" min="30" max="200" class="form-control"
+                   formControlName="diastolic_bp" placeholder="~ 80">
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label">VO₂ Max (ml/kg/min)</label>
+            <input type="number" min="10" max="100" step="0.1" class="form-control"
+                   formControlName="vo2_max">
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4 align-items-center">
+          <button type="submit" class="btn btn-primary btn-icon" [disabled]="saving()">
+            <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+            <i class="bi bi-check-lg" *ngIf="!saving()"></i>
+            Save metrics
+          </button>
+          <small class="text-muted" *ngIf="metrics()?.updated_at">
+            Last updated {{ metrics()?.updated_at | date:'medium' }}
+          </small>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+</div>

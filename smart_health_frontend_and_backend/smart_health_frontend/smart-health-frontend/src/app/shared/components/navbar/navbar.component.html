@@ -1,0 +1,85 @@
+<nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top" *ngIf="auth.isLoggedIn()">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/dashboard">
+      <i class="bi bi-heart-pulse-fill text-primary fs-4"></i>
+      <span class="fw-semibold">Smart Health</span>
+    </a>
+
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/activities" routerLinkActive="active">
+            <i class="bi bi-activity"></i> Activities
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/nutrition" routerLinkActive="active">
+            <i class="bi bi-cup-straw"></i> Nutrition
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/health-metrics" routerLinkActive="active">
+            <i class="bi bi-heart"></i> Health Metrics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/goals" routerLinkActive="active">
+            <i class="bi bi-bullseye"></i> Goals
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/analytics" routerLinkActive="active">
+            <i class="bi bi-graph-up-arrow"></i> Analytics
+          </a>
+        </li>
+        <li class="nav-item dropdown" *ngIf="auth.isAdmin()">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-shield-lock"></i> Admin
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLink="/admin/users">All Users</a></li>
+            <li><a class="dropdown-item" routerLink="/admin/top-active">Top Active Users</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="avatar-circle">
+              {{ (auth.currentUser()?.full_name || 'U').charAt(0) }}
+            </span>
+            <span class="d-none d-md-inline">{{ auth.currentUser()?.full_name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <span class="dropdown-item-text small text-muted">
+                Signed in as<br>
+                <strong>{{ auth.currentUser()?.email }}</strong>
+                <span class="badge bg-secondary ms-1" *ngIf="auth.isAdmin()">admin</span>
+              </span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" routerLink="/profile"><i class="bi bi-person"></i> My Profile</a></li>
+            <li><a class="dropdown-item" href="#" (click)="logout(); $event.preventDefault()">
+              <i class="bi bi-box-arrow-right"></i> Log out
+            </a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

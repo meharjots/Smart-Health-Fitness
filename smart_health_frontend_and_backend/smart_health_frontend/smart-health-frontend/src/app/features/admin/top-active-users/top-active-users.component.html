@@ -1,0 +1,73 @@
+<div class="container-fluid p-3 p-lg-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h2 class="page-title">
+        <i class="bi bi-trophy"></i> Top Active Users
+        <span class="badge bg-secondary">admin</span>
+      </h2>
+      <p class="page-subtitle">Ranked by total calories burned (MongoDB aggregation pipeline)</p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2 align-items-center">
+      <label class="small text-muted mb-0">Show top</label>
+      <select class="form-select form-select-sm" style="width:80px"
+              [(ngModel)]="limit" (ngModelChange)="load()">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+      </select>
+    </div>
+  </div>
+
+  <app-loading *ngIf="loading()"></app-loading>
+
+  <ng-container *ngIf="!loading()">
+    <div class="empty-state" *ngIf="users().length === 0">
+      <i class="bi bi-trophy"></i>
+      <p>No activity data yet.</p>
+    </div>
+
+    <div class="row g-3" *ngIf="users().length > 0">
+      <div class="col-lg-7">
+        <div class="card p-4">
+          <h6 class="mb-3"><i class="bi bi-bar-chart-line"></i> Leaderboard</h6>
+          <div class="chart-container" [style.height.px]="users().length * 40 + 80">
+            <canvas baseChart
+                    [data]="chartData()"
+                    [options]="chartOptions"
+                    type="bar">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card p-4">
+          <h6 class="mb-3"><i class="bi bi-list-ol"></i> Top performers</h6>
+          <ol class="list-group list-group-numbered list-group-flush">
+            <li *ngFor="let u of users(); let i = index"
+                class="list-group-item d-flex justify-content-between align-items-start px-0">
+              <div class="ms-2 me-auto">
+                <div class="fw-500">
+                  <i class="bi" [ngClass]="medalIcon(i)"></i>
+                  {{ u.full_name }}
+                </div>
+                <small class="text-muted">
+                  {{ u.email }} ·
+                  <span class="badge badge-soft-info">{{ u.membership_type }}</span>
+                </small>
+                <div class="small mt-1">
+                  {{ u.total_sessions }} sessions ·
+                  {{ u.total_duration_minutes }} min
+                </div>
+              </div>
+              <span class="badge badge-soft-success rounded-pill">
+                {{ u.total_calories_burned | number:'1.0-0' }} kcal
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

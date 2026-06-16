@@ -1,0 +1,139 @@
+<div class="container-fluid p-3 p-lg-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
+    <div>
+      <h2 class="page-title"><i class="bi bi-activity"></i> Activities</h2>
+      <p class="page-subtitle">
+        Track your workouts and see your training history
+      </p>
+    </div>
+    <div class="mt-3 mt-md-0">
+      <button class="btn btn-primary btn-icon" routerLink="/activities/new">
+        <i class="bi bi-plus-lg"></i> Log Activity
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card p-3 mb-4">
+    <h6 class="mb-3"><i class="bi bi-funnel"></i> Filters</h6>
+    <form [formGroup]="filters" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small">Activity type</label>
+        <select class="form-select" formControlName="activity_type">
+          <option value="">All types</option>
+          <option *ngFor="let t of ACTIVITY_TYPES" [value]="t">{{ t | titlecase }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">From</label>
+        <input type="date" class="form-control" formControlName="start_date">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">To</label>
+        <input type="date" class="form-control" formControlName="end_date">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-outline-secondary w-100"
+                (click)="resetFilters()">
+          <i class="bi bi-x-lg"></i> Clear
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results card -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">
+        <i class="bi bi-list-ul"></i> {{ total() }} result{{ total() === 1 ? '' : 's' }}
+      </span>
+      <span class="small text-muted" *ngIf="totalPages() > 1">
+        Page {{ page() }} of {{ totalPages() }}
+      </span>
+    </div>
+
+    <app-loading *ngIf="loading()"></app-loading>
+
+    <div class="empty-state" *ngIf="!loading() && activities().length === 0">
+      <i class="bi bi-clipboard-x"></i>
+      <p>No activities match your filters.</p>
+      <button class="btn btn-sm btn-primary" routerLink="/activities/new">
+        <i class="bi bi-plus-lg"></i> Log your first activity
+      </button>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading() && activities().length > 0">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Date</th>
+            <th class="text-end">Duration</th>
+            <th class="text-end">Calories</th>
+            <th>Notes</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of activities()">
+            <td>
+              <i class="bi" [ngClass]="activityIcon(a.activity_type)"></i>
+              <span class="ms-2 fw-500">{{ a.activity_type | titlecase }}</span>
+            </td>
+            <td>{{ a.activity_date | date:'mediumDate' }}</td>
+            <td class="text-end">{{ a.duration_minutes }} min</td>
+            <td class="text-end">
+              <span class="badge badge-soft-success">
+                {{ a.calories_burned | number:'1.0-0' }} kcal
+              </span>
+            </td>
+            <td class="text-truncate" style="max-width: 220px;"
+                [attr.title]="a.notes">{{ a.notes || '—' }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-secondary me-1" (click)="edit(a)"
+                      title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" (click)="askDelete(a)"
+                      title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="card-footer bg-white d-flex justify-content-center"
+         *ngIf="!loading() && totalPages() > 1">
+      <nav>
+        <ul class="pagination mb-0">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="goTo(page() - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
+          <li class="page-item" *ngFor="let p of pageRange()"
+              [class.active]="p === page()">
+            <button class="page-link" (click)="goTo(p)">{{ p }}</button>
+          </li>
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="goTo(page() + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <app-confirm-dialog
+    [visible]="!!deleteTarget()"
+    title="Delete this activity?"
+    [message]="'Are you sure you want to delete this ' + (deleteTarget()?.activity_type ?? '') + ' activity?'"
+    confirmLabel="Yes, delete"
+    (confirm)="doDelete()"
+    (cancel)="deleteTarget.set(null)">
+  </app-confirm-dialog>
+</div>

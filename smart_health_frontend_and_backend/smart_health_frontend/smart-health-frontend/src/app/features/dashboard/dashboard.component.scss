@@ -1,0 +1,21 @@
+.fw-500 { font-weight: 500; }
+
+.card-metric {
+  h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--sh-dark);
+  }
+  i { transition: opacity 0.2s; }
+  &:hover i { opacity: 0.9 !important; }
+}
+
+.list-group-item {
+  border-color: #f1f5f9;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.chart-container {
+  height: 300px;
+}

@@ -1,0 +1,84 @@
+<div class="container p-3 p-lg-4" style="max-width: 720px;">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a routerLink="/nutrition">Nutrition</a></li>
+      <li class="breadcrumb-item active">{{ editingId() ? 'Edit' : 'New' }}</li>
+    </ol>
+  </nav>
+
+  <h2 class="page-title">
+    <i class="bi" [ngClass]="editingId() ? 'bi-pencil-square' : 'bi-plus-circle'"></i>
+    {{ editingId() ? 'Edit Meal Log' : 'Log New Meal' }}
+  </h2>
+  <p class="page-subtitle">
+    Record what you ate and your macro breakdown
+  </p>
+
+  <app-loading *ngIf="loading()" message="Loading meal…"></app-loading>
+
+  <div class="card p-4" *ngIf="!loading()">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Meal type <span class="required-marker">*</span></label>
+          <select class="form-select" formControlName="meal_type">
+            <option *ngFor="let t of MEAL_TYPES" [value]="t">{{ t | titlecase }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Date <span class="required-marker">*</span></label>
+          <input type="date" class="form-control" formControlName="log_date">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Food name <span class="required-marker">*</span></label>
+          <input type="text" class="form-control" formControlName="food_name"
+                 placeholder="e.g. Grilled chicken salad"
+                 [class.is-invalid]="form.controls.food_name.touched && form.controls.food_name.invalid">
+          <div class="invalid-feedback">Enter a food name (min 2 characters).</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Calories <span class="required-marker">*</span></label>
+          <input type="number" min="0" max="10000" step="0.1" class="form-control"
+                 formControlName="calories_intake"
+                 [class.is-invalid]="form.controls.calories_intake.touched && form.controls.calories_intake.invalid">
+          <small class="text-muted" *ngIf="macroCalories() > 0">
+            <i class="bi bi-info-circle"></i>
+            Your macros add up to ≈ {{ macroCalories() }} kcal
+          </small>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Protein (g)</label>
+          <input type="number" min="0" max="1000" step="0.1" class="form-control"
+                 formControlName="protein_grams">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Carbohydrates (g)</label>
+          <input type="number" min="0" max="1000" step="0.1" class="form-control"
+                 formControlName="carbs_grams">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Fats (g)</label>
+          <input type="number" min="0" max="1000" step="0.1" class="form-control"
+                 formControlName="fats_grams">
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-icon" [disabled]="saving()">
+          <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+          <i class="bi bi-check-lg" *ngIf="!saving()"></i>
+          {{ editingId() ? 'Save changes' : 'Log meal' }}
+        </button>
+        <a routerLink="/nutrition" class="btn btn-outline-secondary">
+          <i class="bi bi-x-lg"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

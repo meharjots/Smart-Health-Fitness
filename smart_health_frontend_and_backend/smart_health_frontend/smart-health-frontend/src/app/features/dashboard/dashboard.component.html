@@ -1,0 +1,247 @@
+<div class="container-fluid p-3 p-lg-4">
+
+  <!-- Welcome banner -->
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+    <div>
+      <h2 class="page-title mb-1">Welcome back, {{ firstName() }} 👋</h2>
+      <p class="page-subtitle mb-0">Here's your health overview for today</p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+      <button class="btn btn-outline-primary btn-icon" routerLink="/activities/new">
+        <i class="bi bi-plus-lg"></i> Log Activity
+      </button>
+      <button class="btn btn-primary btn-icon" routerLink="/nutrition/new">
+        <i class="bi bi-plus-lg"></i> Log Meal
+      </button>
+    </div>
+  </div>
+
+  <app-loading *ngIf="loading()" message="Preparing your dashboard…"></app-loading>
+
+  <ng-container *ngIf="!loading()">
+    <!-- Metric cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card card-metric h-100 p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small text-muted">Calories today</div>
+              <h3 class="mb-0 mt-1">
+                {{ (goals()?.progress?.today_calories?.consumed) ?? (balance()?.calories_consumed ?? 0) | number:'1.0-0' }}
+              </h3>
+              <small class="text-muted"
+                     *ngIf="goals()?.progress?.today_calories?.target">
+                / {{ goals()?.progress?.today_calories?.target }} target
+              </small>
+            </div>
+            <i class="bi bi-cup-hot-fill fs-2 text-primary opacity-50"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-metric success h-100 p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small text-muted">Workouts this week</div>
+              <h3 class="mb-0 mt-1">
+                {{ goals()?.progress?.weekly_workouts?.completed ?? 0 }}
+              </h3>
+              <small class="text-muted"
+                     *ngIf="goals()?.progress?.weekly_workouts?.target">
+                / {{ goals()?.progress?.weekly_workouts?.target }} target
+              </small>
+            </div>
+            <i class="bi bi-lightning-charge-fill fs-2 text-success opacity-50"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-metric info h-100 p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small text-muted">BMI</div>
+              <h3 class="mb-0 mt-1">{{ bmi()?.bmi ?? '--' }}</h3>
+              <span class="badge mt-1" [ngClass]="bmiBadgeClass()" *ngIf="bmi()">
+                {{ bmi()?.category }}
+              </span>
+            </div>
+            <i class="bi bi-heart-pulse-fill fs-2 text-info opacity-50"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-metric warn h-100 p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small text-muted">Net calorie balance (7d)</div>
+              <h3 class="mb-0 mt-1">
+                {{ balance()?.net_balance ?? 0 | number:'1.0-0' }}
+              </h3>
+              <small class="text-muted">
+                Burned: {{ balance()?.calories_burned ?? 0 | number:'1.0-0' }}
+              </small>
+            </div>
+            <i class="bi bi-graph-up-arrow fs-2 text-warning opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <!-- Weekly chart -->
+      <div class="col-lg-8">
+        <div class="card p-3 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Last 7 days — Calorie activity</h6>
+            <a routerLink="/analytics" class="small text-decoration-none">
+              View more <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <div class="chart-container">
+            <canvas baseChart
+                    [data]="barChartData()"
+                    [options]="barChartOptions"
+                    type="bar">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal progress -->
+      <div class="col-lg-4">
+        <div class="card p-3 h-100">
+          <h6 class="mb-3"><i class="bi bi-bullseye"></i> Goal progress</h6>
+
+          <div *ngIf="!hasGoals()" class="text-center py-4">
+            <i class="bi bi-bullseye fs-2 text-muted"></i>
+            <p class="small text-muted mt-2">No goals set yet.</p>
+            <button class="btn btn-sm btn-outline-primary" routerLink="/goals">
+              Set goals
+            </button>
+          </div>
+
+          <ng-container *ngIf="goals()?.progress as p">
+            <div *ngIf="p.weekly_workouts" class="mb-3">
+              <div class="d-flex justify-content-between small">
+                <span>Weekly workouts</span>
+                <strong>{{ p.weekly_workouts.completed }}/{{ p.weekly_workouts.target }}</strong>
+              </div>
+              <div class="progress mt-1" style="height:6px">
+                <div class="progress-bar bg-success" role="progressbar"
+                     [style.width.%]="p.weekly_workouts.percentage"></div>
+              </div>
+            </div>
+
+            <div *ngIf="p.today_calories" class="mb-3">
+              <div class="d-flex justify-content-between small">
+                <span>Today's calories</span>
+                <strong>{{ p.today_calories.consumed | number:'1.0-0' }}/{{ p.today_calories.target }}</strong>
+              </div>
+              <div class="progress mt-1" style="height:6px">
+                <div class="progress-bar bg-primary" role="progressbar"
+                     [style.width.%]="p.today_calories.percentage"></div>
+              </div>
+            </div>
+
+            <div *ngIf="p.weight" class="mb-3">
+              <div class="d-flex justify-content-between small">
+                <span>Weight target</span>
+                <strong>
+                  {{ p.weight.current_kg }}kg → {{ p.weight.target_kg }}kg
+                </strong>
+              </div>
+              <div class="small mt-1"
+                   [ngClass]="{
+                     'text-success': p.weight.status === 'achieved',
+                     'text-warning': p.weight.status === 'above_target',
+                     'text-info':    p.weight.status === 'below_target'
+                   }">
+                <i class="bi bi-circle-fill"></i>
+                {{ p.weight.status | titlecase }}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Recent activities -->
+      <div class="col-lg-6">
+        <div class="card p-3 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="bi bi-activity"></i> Recent activities</h6>
+            <a routerLink="/activities" class="small text-decoration-none">
+              See all <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <div *ngIf="recentActivities().length === 0" class="empty-state py-3">
+            <i class="bi bi-activity"></i>
+            <p class="mb-1 small">No activities logged yet</p>
+            <button class="btn btn-sm btn-outline-primary" routerLink="/activities/new">
+              Log your first workout
+            </button>
+          </div>
+          <div class="list-group list-group-flush"
+               *ngIf="recentActivities().length > 0">
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center"
+                 *ngFor="let a of recentActivities()">
+              <div>
+                <div class="fw-500">
+                  <i class="bi bi-activity text-primary"></i>
+                  {{ a.activity_type | titlecase }}
+                </div>
+                <small class="text-muted">
+                  {{ a.duration_minutes }} min · {{ a.activity_date | date:'mediumDate' }}
+                </small>
+              </div>
+              <span class="badge badge-soft-success">
+                {{ a.calories_burned | number:'1.0-0' }} kcal
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent meals -->
+      <div class="col-lg-6">
+        <div class="card p-3 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="bi bi-cup-straw"></i> Recent meals</h6>
+            <a routerLink="/nutrition" class="small text-decoration-none">
+              See all <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <div *ngIf="recentMeals().length === 0" class="empty-state py-3">
+            <i class="bi bi-cup-straw"></i>
+            <p class="mb-1 small">No meals logged yet</p>
+            <button class="btn btn-sm btn-outline-primary" routerLink="/nutrition/new">
+              Log your first meal
+            </button>
+          </div>
+          <div class="list-group list-group-flush"
+               *ngIf="recentMeals().length > 0">
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center"
+                 *ngFor="let m of recentMeals()">
+              <div>
+                <div class="fw-500">
+                  <i class="bi bi-cup-straw text-info"></i>
+                  {{ m.food_name }}
+                </div>
+                <small class="text-muted">
+                  {{ m.meal_type | titlecase }} · {{ m.log_date | date:'mediumDate' }}
+                </small>
+              </div>
+              <span class="badge badge-soft-primary">
+                {{ m.calories_intake | number:'1.0-0' }} kcal
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
